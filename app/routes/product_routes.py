@@ -1,72 +1,69 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from app.schemas.product_schema import ProductSchema
+from app.schemas.product_schema import ProductCreate,ProductUpdate
 from app.config.database import get_db
 from app.models.product_model import Product
+from app.services.product_service import get_all_products, get_product_by_id, create_product,delete_product,update_product
+# pyrefly: ignore [missing-import]
+from app.services
 
 
 
 router = APIRouter()
-
-
-
-
-
 # Get All Products
-@router.get("/")
-def get_all_products(db: Session = Depends(get_db)):
-   #SELECT * FROM PRODUCTS
-    return db.query(Product).all()
-
-# Get Single Product by ID
-@router.get("/{product_id}")
-def get_product(product_id: int, db: Session = Depends(get_db)):
-    product = db.query(Product).filter(Product.id == product_id).first() #SELECT * FROM PRODUCTS WHERE ID=?
-    if not product:
-        raise HTTPException(detail="Product not found")
-    return product
-
-# Create Product
-@router.post("/")
-def create_product(product_in: ProductSchema, db: Session = Depends(get_db)):
+@router.post("/products")
+def create_product_route(
+    product: ProductCreate,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+    ):
     
-    db_product = Product(
-        Name=product_in.Name,
-        Description=product_in.Description,
-        Price=product_in.Price,
-        Quantity=product_in.Quantity
+    return create_product(
+        product=product,
+        user_id=current_user.id,
+        db=db
     )
-    db.add(db_product)
-    db.commit()
-    db.refresh(db_product)
-    return db_product
+@router.get("/products")
+def get_products_route(
+    db: Session = Depends(get_db)
+):
+    return get_all_products(db)
 
-# Update Product
-@router.put("/{product_id}")
-def update_product(product_id: int, product_in: ProductSchema, db: Session = Depends(get_db)):
-    db_product = db.query(Product).filter(Product.id == product_id).first()
-    #UPDATE PRODUCTS SET=1 WHERE ID="1";
-    if not db_product:
-        raise HTTPException(status_code=404, detail="Product not found")
-        
-        
-    db_product.Name = product_in.Name
-    db_product.Description = product_in.Description
-    db_product.Price = product_in.Price
-    db_product.Quantity = product_in.Quantity
-    
-    db.commit()
-    db.refresh(db_product)
-    return db_product
 
-# Delete Product
-@router.delete("/{product_id}")
-def delete_product(product_id: int, db: Session = Depends(get_db)):
-    db_product = db.query(Product).filter(Product.id == product_id).first()
-    if not db_product:
-        raise HTTPException(status_code=404, detail="Product not found")
-        
-    db.delete(db_product)
-    db.commit()
-    return None
-    
+
+@router.get("/products/{product_id}")
+def get_product(
+    product_id: str,
+    db: Session = Depends(get_db)
+):
+    return get_product_by_id(
+        product_id=product_id,
+        db=db
+    )
+@router.put("/products/{product_id}")
+def update_product_route(
+    product_id: str,
+    product: ProductUpdate,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    return update_product(
+        product_id=product_id,
+        data=product,
+        user_id=current_user.id,
+        db=db
+    )
+
+@router.delete("/products/{product_id}")
+def delete_product_route(
+    product_id: str,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    return delete_product(
+        product_id=product_id,
+        user_id=current_user.id,
+        db=db
+    )
+
+

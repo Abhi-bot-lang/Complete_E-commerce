@@ -1,3 +1,4 @@
+from app.models import JWT
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.schemas.user_schema import User_Schema, LoginSchema
@@ -14,6 +15,7 @@ from app.utils.otp_helper import _save_otp
 from app.models.enum import OtpStatus
 from app.schemas.otp_schema import VerifyOTPSchema
 
+
 router = APIRouter()
 
 # Register
@@ -23,6 +25,10 @@ def register(user: User_Schema, db: Session = Depends(get_db)):
         # Check existing user
         if db.query(User).filter(User.email == user.email).first():
             raise HTTPException(status_code=400, detail="Email already exists")
+
+     
+
+
 
         # Create user (no OTP fields on User model)
         db_user = User(
@@ -47,10 +53,11 @@ def register(user: User_Schema, db: Session = Depends(get_db)):
 
         return {"message": "OTP sent successfully. Please verify your email."}
 
-    except HTTPException as http_exc:
-        raise http_exc
+    except HTTPException as exc:
+         raise exc
+        
+   
     except Exception as e:
-        db.rollback()
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
 
 
@@ -95,11 +102,10 @@ def verify_otp(data: VerifyOTPSchema, db: Session = Depends(get_db)):
         db.commit()
 
         return {"message": "Email verified successfully"}
+    except HTTPException as exc:
+       raise exc
 
-    except HTTPException as http_exc:
-        raise http_exc
     except Exception as e:
-        db.rollback()
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
 
 
@@ -108,6 +114,7 @@ def verify_otp(data: VerifyOTPSchema, db: Session = Depends(get_db)):
 def forgot_password(user: ForgotPasswordSchema, db: Session = Depends(get_db)):
     try:
         db_user = db.query(User).filter(User.email == user.email).first()
+        print(db_user)
         if not db_user:
             raise HTTPException(status_code=404, detail="User not found")
 
@@ -117,11 +124,11 @@ def forgot_password(user: ForgotPasswordSchema, db: Session = Depends(get_db)):
 
         # Send OTP email
         send_otp_email(user.email, otp)
-
+           
         return {"message": "OTP sent successfully to registered email"}
 
-    except HTTPException as http_exc:
-        raise http_exc
+    except HTTPException:
+        raise HTTPException
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
@@ -163,10 +170,10 @@ def reset_password(user: ResetPasswordSchema, db: Session = Depends(get_db)):
 
         return {"message": "Password reset successful"}
 
-    except HTTPException as http_exc:
-        raise http_exc
+    except HTTPException:
+        print("This HTTP Exception is thrown ")
+        raise HTTPException
     except Exception as e:
-        db.rollback()
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
 
 
@@ -196,8 +203,9 @@ def login(user: LoginSchema, db: Session = Depends(get_db)):
             "refresh_token": refresh_token
         }
 
-    except HTTPException as http_exc:
-        raise http_exc
+    except HTTPException:
+        print("This HTTP Exception is thrown ")
+        raise HTTPException
+    
     except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
+      raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")

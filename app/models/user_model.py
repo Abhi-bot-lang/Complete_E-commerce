@@ -2,10 +2,16 @@ from sqlalchemy import Column, Integer, String, Boolean, Enum as SQLEnum, DateTi
 from app.models.enum import UserRole
 from app.config.database import Base
 from datetime import datetime
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, Enum as SQLEnum
+from datetime import datetime
+from app.models.enum import UserRole
+from sqlalchemy.orm import relationship
+import time 
+import uuid
 
 
 class User(Base):
-    __tablename__ = "Users"
+    __tablename__ = "users"
 
     id = Column(Integer, primary_key=True)
     firstName = Column(String)
@@ -17,3 +23,6 @@ class User(Base):
     isActive = Column(Boolean, default=False)
     createdAt = Column(DateTime, default=datetime.utcnow)
     updatedAt = Column(DateTime, default=datetime.utcnow)
+
+    products = relationship("Product", back_populates="user")
+    stores = relationship("Store", back_populates="user")
