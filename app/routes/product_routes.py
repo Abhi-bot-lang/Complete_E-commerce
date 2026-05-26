@@ -5,7 +5,7 @@ from app.config.database import get_db
 from app.models.product_model import Product
 from app.services.product_service import get_all_products, get_product_by_id, create_product,delete_product,update_product
 # pyrefly: ignore [missing-import]
-from app.services
+
 
 
 
