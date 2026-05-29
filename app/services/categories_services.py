@@ -1,5 +1,7 @@
 from fastapi import HTTPException, status
+
 from app.models.categories import Category
+from app.schemas.categories import CategoryUpdateSchema,CategoryCreate
 
 
 def get_all_categories(db):
@@ -8,7 +10,7 @@ def get_all_categories(db):
 
         if not categories:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
+                status_code=404,
                 detail="No categories found"
             )
 
@@ -19,7 +21,7 @@ def get_all_categories(db):
 
     except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status_code=500,
             detail=f"Internal Server Error: {str(e)}"
         )
 
@@ -33,7 +35,7 @@ def get_category_by_id(category_id: int, db):
 
         if not category:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
+                status_code=404,
                 detail="Category not found"
             )
 
@@ -44,11 +46,11 @@ def get_category_by_id(category_id: int, db):
 
     except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status_code=500,
             detail=f"Internal Server Error: {str(e)}"
         )
 
-def create_category(category_data, db):
+def create_category(category_data:CategoryCreate, db):
 
     try:
 
@@ -58,7 +60,7 @@ def create_category(category_data, db):
 
         if existing_category:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
+                status_code=400,
                 detail="Category already exists"
             )
 
@@ -73,6 +75,7 @@ def create_category(category_data, db):
         return {
             "message": "Category created successfully",
             "data": category
+           
         }
 
     except HTTPException as http_exc:
@@ -82,12 +85,11 @@ def create_category(category_data, db):
     
 
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status_code=500,
             detail=f"Internal Server Error: {str(e)}"
         )
 
-#check this tomorow
-def update_category(category_id: int,category_data,db):
+def update_category(category_id: int,category_data:CategoryUpdateSchema,db):
     try:
 
         category = db.query(Category).filter(
@@ -96,18 +98,17 @@ def update_category(category_id: int,category_data,db):
 
         if not category:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
+                status_code=404,
                 detail="Category not found"
             )
         #Duplicate name
         existing_category = db.query(Category).filter(
-            Category.name == category_data.name,
-            Category.id != category_id
+            Category.name == category_data.name
+
         ).first()
-        #Duplicate name
         if existing_category:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
+                status_code=404,
                 detail="Category already exists"
             )
 
@@ -126,7 +127,7 @@ def update_category(category_id: int,category_data,db):
 
     except Exception as e:
        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status_code=500,
             detail=f"Internal Server Error: {str(e)}"
         )
 
@@ -139,7 +140,7 @@ def delete_category(category_id: int, db):
 
         if not category:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
+                status_code=404,
                 detail="Category not found"
             )
 
@@ -155,6 +156,6 @@ def delete_category(category_id: int, db):
 
     except Exception as e:
       raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status_code=500,
             detail=f"Internal Server Error: {str(e)}"
         )

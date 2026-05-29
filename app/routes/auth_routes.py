@@ -16,7 +16,10 @@ from app.models.enum import OtpStatus
 from app.schemas.otp_schema import VerifyOTPSchema
 
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/auth",
+    tags=["Authentication"]
+)
 
 # Register
 @router.post("/register")
@@ -203,8 +206,12 @@ def login(user: LoginSchema, db: Session = Depends(get_db)):
             "refresh_token": refresh_token
         }
 
-    except HTTPException:
-        print("This HTTP Exception is thrown ")
+    except HTTPException as exc:
+        # Preserve original exception details
+        raise exc
+        # Log if desired
+        raise exc
+      
         raise HTTPException
     
     except Exception as e:

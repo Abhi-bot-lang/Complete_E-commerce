@@ -2,12 +2,13 @@ from sqlalchemy import Column, Integer, String,BigInteger
 from app.config.database import Base
 from sqlalchemy.orm import relationship
 import time 
+import uuid
 
 class Category(Base):
     __tablename__ = "categories"
 
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
+    name = Column(String,unique=False, nullable=False)
 
     createdAt = Column(BigInteger,default=lambda: int(time.time() * 1000))
 

@@ -12,13 +12,15 @@ class Product(Base):
     id = Column(String(36),primary_key=True,default=lambda: str(uuid.uuid4()))
 
     userId= Column(Integer, ForeignKey("users.id"), nullable=False)
-    productName = Column(String(100),nullable=False)
+    productName = Column(String(100),nullable=False,unique=True)
 
     description = Column(String(100),nullable=True)
 
     price = Column(Integer,nullable=False)
 
     stock = Column(Integer,nullable=False,default=0)
+
+    slug = Column(String, unique=True, nullable=False)
 
     categoryId = Column(Integer, ForeignKey("categories.id"), nullable=False)
 

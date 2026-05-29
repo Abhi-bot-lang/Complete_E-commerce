@@ -3,32 +3,54 @@ from sqlalchemy.orm import Session
 from app.models.store_model import Store
 from app.models.product_model import Product
 from app.models.user_model import User
-from app.schemas.store_schemas import StoreCreate
+from app.schemas.store_schemas import StoreCreate, StoreUpdate
+import uuid
 
-def get_all_stores(db: Session):
-    try:
-        stores = db.query(Store).all()
 
-        if not stores:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="No stores found"
-            )
 
-        return stores
 
-    except HTTPException as http_exc:
-        raise http_exc
 
-    except Exception as e:
+def create_store(
+    store: StoreCreate,
+    user_id: int,
+    db: Session
+):
+    existing_store = db.query(Store).filter(
+        Store.userId == user_id
+    ).first()
+
+    if existing_store:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Internal Server Error: {str(e)}"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Store already exists"
         )
 
-#
-def update_store(id: int, store_data: StoreCreate, db: Session):
-    store = db.query(Store).filter(Store.id == id).first()
+    new_store = Store(
+        userId=user_id,
+        storeName=store.storeName,
+        description=store.description,
+        isActive=True
+    )
+
+    db.add(new_store)
+    db.commit()
+    db.refresh(new_store)
+
+    return new_store
+
+
+def get_all_stores(db: Session):
+    return db.query(Store).all()
+
+
+def get_store_by_id(
+    store_id: str,
+    db: Session
+):
+    # Directly compare string ID
+    store = db.query(Store).filter(
+        Store.id == store_id
+    ).first()
 
     if not store:
         raise HTTPException(
@@ -36,19 +58,48 @@ def update_store(id: int, store_data: StoreCreate, db: Session):
             detail="Store not found"
         )
 
-    store.name = store_data.name
-    store.description = store_data.description
+    return store
+
+
+def update_store(
+    store_id: str,
+    data: StoreUpdate,
+    db: Session
+):
+    # Directly compare string ID
+    store = db.query(Store).filter(
+        Store.id == store_id
+    ).first()
+
+    if not store:
+        raise HTTPException(
+            status_code=404,
+            detail="Store not found"
+        )
+
+    if data.storeName is not None:
+        store.storeName = data.storeName
+
+    if data.description is not None:
+        store.description = data.description
+
+    if data.isActive is not None:
+        store.isActive = data.isActive
 
     db.commit()
     db.refresh(store)
 
-    return {
-        "message": "Store updated successfully",
-        "data": store
-    }
+    return store
 
-def delete_store(id: int, db: Session):
-    store = db.query(Store).filter(Store.id == id).first()
+
+def delete_store(
+    store_id: str,
+    db: Session
+):
+    # Directly compare string ID
+    store = db.query(Store).filter(
+        Store.id == store_id
+    ).first()
 
     if not store:
         raise HTTPException(
@@ -61,42 +112,4 @@ def delete_store(id: int, db: Session):
 
     return {
         "message": "Store deleted successfully"
-    }
-
-def get_store_products(id: int, db: Session):
-    store = db.query(Store).filter(Store.id == id).first()
-
-    if not store:
-        raise HTTPException(
-            status_code=404,
-            detail="Store not found"
-        )
-
-    products = db.query(Product).filter(
-        Product.store_id == id
-    ).all()
-
-    return {
-        "store_id": id,
-        "products": products
-    }
-
-def get_user_stores(user_id: int, db: Session):
-    user = db.query(User).filter(
-        User.id == user_id
-    ).first()
-
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail="User not found"
-        )
-
-    stores = db.query(Store).filter(
-        Store.user_id == user_id
-    ).all()
-
-    return {
-        "user_id": user_id,
-        "stores": stores
     }

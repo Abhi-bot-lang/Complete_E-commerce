@@ -1,13 +1,19 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.config.database import get_db
 from app.services import categories_services
 from app.schemas.categories import CategoryCreate, CategoryUpdateSchema
 
-router = APIRouter()
 
-@router.get("/categories")
+
+router = APIRouter(
+    prefix="/categories",
+    tags=["Categories"]
+)
+
+
+@router.get("/")
 def get_all_categories(db: Session = Depends(get_db)):
     return categories_services.get_all_categories(db)
 

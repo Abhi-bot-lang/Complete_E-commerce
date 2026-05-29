@@ -1,14 +1,14 @@
 from pydantic import BaseModel
+from typing import Optional
 
-class StoreResponseSchema(BaseModel):
-    id: int
-    name: str
-    address: str
 
 class StoreCreate(BaseModel):
-    name: str
-    address: str
-class StoreUpdate(BaseModel):
-    name: str
-    address: str
+    storeName: str
+    description: str
+    user_id:int
 
+
+class StoreUpdate(BaseModel):
+    storeName: str
+    description:str
+    isActive:bool 
